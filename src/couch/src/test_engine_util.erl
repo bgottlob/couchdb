@@ -135,13 +135,14 @@ apply_action(Engine, St, Action) ->
 
 apply_batch(Engine, St, [{purge, {Id, Revs}}]) ->
     UpdateSeq = Engine:get_update_seq(St) + 1,
+    PurgeSeq = Engine:get_purge_seq(St) + 1,
     case gen_write(Engine, St, {purge, {Id, Revs}}, UpdateSeq) of
         {_, _, purged_before}->
             St;
         {Pair, _, {Id, PRevs}} ->
             UUID = couch_uuids:new(),
             {ok, NewSt} = Engine:purge_docs(
-                St, [Pair], [{UUID, Id, PRevs}]),
+                St, [Pair], [{PurgeSeq, UUID, Id, PRevs}]),
             NewSt
     end;
 
